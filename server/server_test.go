@@ -104,8 +104,8 @@ func TestServer(t *testing.T) {
 		ProcessUrl(w, rr)
 		resultBody := ResponseStruct{}
 		json.Unmarshal(w.Body.Bytes(), &resultBody)
-		if resultBody.ProcessedUrl != "https://byfood.com/food-experiences/" {
-			t.Errorf("Expected %s, got %s", "https://byfood.com/food-experiences/", resultBody.ProcessedUrl)
+		if resultBody.ProcessedUrl != "https://www.byfood.com/food-experiences/" {
+			t.Errorf("Expected %s, got %s", "https://www.byfood.com/food-experiences/", resultBody.ProcessedUrl)
 		}
 	})
 

@@ -34,7 +34,6 @@ func ProcessUrl(w http.ResponseWriter, r *http.Request) {
 
 	defer r.Body.Close()
 
-	var request RequestStruct
 	if r.ContentLength == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		jsonResponse, _ := json.Marshal(ErrMessage{Msg: "Error : Request Body is empty"})
@@ -42,11 +41,14 @@ func ProcessUrl(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	decodeErr := json.NewDecoder(r.Body).Decode(&request)
+	var request RequestStruct
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
 
+	decodeErr := decoder.Decode(&request)
 	if decodeErr != nil {
 		w.WriteHeader(http.StatusBadRequest)
-		jsonResponse, _ := json.Marshal(ErrMessage{Msg: decodeErr.Error()})
+		jsonResponse, _ := json.Marshal(ErrMessage{Msg: "Invalid request format"})
 		w.Write(jsonResponse)
 		return
 	}
@@ -110,7 +112,7 @@ func ProcessUrl(w http.ResponseWriter, r *http.Request) {
 
 	default:
 		w.WriteHeader(http.StatusBadRequest)
-		jsonResponse, _ := json.Marshal(ErrMessage{Msg: "Invalid operation type"})
+		jsonResponse, _ := json.Marshal(ErrMessage{Msg: "Invalid operation"})
 		w.Write(jsonResponse)
 		return
 	}

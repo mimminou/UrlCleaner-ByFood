@@ -10,6 +10,11 @@ import (
 	"testing"
 )
 
+type InvalidRquest struct {
+	Link string `json:"link"`
+	Op   string `json:"op"`
+}
+
 func SetupMockServer() *http.Server {
 	serverMux := http.NewServeMux()
 	serverMux.HandleFunc("/", ProcessUrl)
@@ -63,8 +68,7 @@ func TestServer(t *testing.T) {
 
 	})
 
-	//This is both a test for Canonical and for IsUrl helper function
-	//which will catch the invalid url before it gets passed on to Canonicalize function
+	//This is really a test for the IsUrl helper function, it filters non valid Urls and it's kind of a middlware for the API
 	t.Run("Test canonical with broken URL", func(t *testing.T) {
 		t.Log("Test canonical with broken URL")
 
@@ -129,6 +133,52 @@ func TestServer(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &resultBody)
 		if resultBody.Msg != "URL is not from ByFood Domain" {
 			t.Errorf("Expected %s, got %s", "URL is not from ByFood Domain", resultBody.Msg)
+		}
+	})
+
+	//Test with a non existent operation
+	t.Run("Test with invalid operation", func(t *testing.T) {
+		t.Log("Test with invalid op")
+
+		reqBody := RequestStruct{
+			Url:       "https://BootlegFood.com/FOOD-EXPeriences/",
+			Operation: "redir",
+		}
+
+		jsonBody, _ := json.Marshal(reqBody)
+
+		rr := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(jsonBody))
+		rr.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		ProcessUrl(w, rr)
+		resultBody := ErrMessage{}
+		json.Unmarshal(w.Body.Bytes(), &resultBody)
+		if resultBody.Msg != "Invalid operation" {
+			t.Errorf("Expected %s, got %s", "Invalid operation", resultBody.Msg)
+		}
+	})
+
+	//Test with invalid body
+	t.Run("Test with invalid body", func(t *testing.T) {
+		t.Log("Test with invalid body")
+
+		reqBody := InvalidRquest{
+			Link: "https://BootlegFood.com/FOOD-EXPeriences/",
+			Op:   "redir",
+		}
+
+		jsonBody, _ := json.Marshal(reqBody)
+
+		rr := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(jsonBody))
+		rr.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		ProcessUrl(w, rr)
+		resultBody := ErrMessage{}
+		json.Unmarshal(w.Body.Bytes(), &resultBody)
+		if resultBody.Msg != "Invalid request format" {
+			t.Errorf("Expected %s, got %s", "Invalid request format", resultBody.Msg)
 		}
 	})
 }

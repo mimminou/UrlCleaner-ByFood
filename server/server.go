@@ -3,12 +3,18 @@ package server
 import (
 	"encoding/json"
 	"fmt"
+	_ "github.com/mimminou/UrlCleaner-ByFood/docs"
+	httpSwagger "github.com/swaggo/http-swagger"
 	"log"
 	"net/http"
 )
 
+// @Description	Process URL
 type RequestStruct struct {
-	Url       string `json:"url"`
+	// @Property		url string true "URL to process"
+	Url string `json:"url"`
+	// @Property		operation string true "Operation to perform"
+	// @Enum			canonical, redirection, all
 	Operation string `json:"operation"`
 }
 
@@ -16,11 +22,24 @@ type ResponseStruct struct {
 	ProcessedUrl string `json:"processed_url"`
 }
 
+// @Description	ErrMessage
+// @Property		msg string true "Error message"
 type ErrMessage struct {
 	Msg string `json:"msg"`
 }
 
 // routes requests that have ID based on HTTP
+//
+//	@Summary		Process URL
+//	@Description	Processes URLs depending on the requested operation
+//	@Tags			ProcessURL
+//	@Accept			json
+//	@Produce		json
+//	@Param			RequestStruct	body	RequestStruct	true	"Request Body"
+//	@Success		200 {object}	ResponseStruct
+//	@Failure		400 {object}	ErrMessage
+//	@Failure		405
+//	@Router			/ [post]
 func ProcessUrl(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
@@ -123,6 +142,13 @@ func Serve(port uint16) {
 	serverMux := http.NewServeMux()
 	middleWareMux := Cors(ResponseLogging(Logging((serverMux))))
 	serverMux.HandleFunc("/", ProcessUrl)
+
+	serverMux.HandleFunc("/swagger.yaml", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "docs/swagger.yaml")
+	})
+
+	httpSwagger.URL("docs/swagger.yaml")
+	serverMux.Handle("/docs/", httpSwagger.WrapHandler)
 
 	fmt.Println("Serving on port", port)
 	err := http.ListenAndServe(fmt.Sprintf(":%d", port), middleWareMux)

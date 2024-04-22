@@ -11,7 +11,12 @@ The server has an stdout to the console that prints incoming requests and their 
 
 ## API Endpoints
 
-### Endpoints:
+### Interactive docs
+Interactive docs were generated using Swagger for this project, simply run the server and you will find them at /docs/ (http://localhost:PORT/docs/)
+
+
+### Endpoints
+
 - `/`: `POST` : takes a JSON body with the Request structure (as specified below)
 
 

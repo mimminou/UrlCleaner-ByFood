@@ -1,0 +1,55 @@
+definitions:
+  server.ErrMessage:
+    description: ErrMessage
+    properties:
+      msg:
+        type: string
+    type: object
+  server.RequestStruct:
+    description: Process URL
+    properties:
+      operation:
+        description: "@Property\t\toperation string true \"Operation to perform\"\n@Enum\t\t\tcanonical,
+          redirection, all"
+        type: string
+      url:
+        description: "@Property\t\turl string true \"URL to process\""
+        type: string
+    type: object
+  server.ResponseStruct:
+    properties:
+      processed_url:
+        type: string
+    type: object
+info:
+  contact: {}
+paths:
+  /:
+    post:
+      consumes:
+      - application/json
+      description: Processes URLs depending on the requested operation
+      parameters:
+      - description: Request Body
+        in: body
+        name: RequestStruct
+        required: true
+        schema:
+          $ref: '#/definitions/server.RequestStruct'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/server.ResponseStruct'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/server.ErrMessage'
+        "405":
+          description: Method Not Allowed
+      summary: Process URL
+      tags:
+      - ProcessURL
+swagger: "2.0"

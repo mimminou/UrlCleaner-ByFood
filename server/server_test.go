@@ -15,6 +15,14 @@ type InvalidRquest struct {
 	Op   string `json:"op"`
 }
 
+type MissingOpRequest struct {
+	Url string `json:"url"`
+}
+
+type MissingUrlRequest struct {
+	Operation string `json:"operation"`
+}
+
 func SetupMockServer() *http.Server {
 	serverMux := http.NewServeMux()
 	serverMux.HandleFunc("/", ProcessUrl)
@@ -179,6 +187,50 @@ func TestServer(t *testing.T) {
 		json.Unmarshal(w.Body.Bytes(), &resultBody)
 		if resultBody.Msg != "Invalid request format" {
 			t.Errorf("Expected %s, got %s", "Invalid request format", resultBody.Msg)
+		}
+	})
+
+	//Test with missing operation
+	t.Run("Test with missing operation", func(t *testing.T) {
+		t.Log("Test with invalid body")
+
+		reqBody := MissingOpRequest{
+			Url: "https://BootlegFood.com/FOOD-EXPeriences/",
+		}
+
+		jsonBody, _ := json.Marshal(reqBody)
+
+		rr := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(jsonBody))
+		rr.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		ProcessUrl(w, rr)
+		resultBody := ErrMessage{}
+		json.Unmarshal(w.Body.Bytes(), &resultBody)
+		if resultBody.Msg != "Invalid operation" {
+			t.Errorf("Expected %s, got %s", "Invalid operation", resultBody.Msg)
+		}
+	})
+
+	//Test with missing url
+	t.Run("Test with missing url", func(t *testing.T) {
+		t.Log("Test with invalid body")
+
+		reqBody := MissingUrlRequest{
+			Operation: "canonical",
+		}
+
+		jsonBody, _ := json.Marshal(reqBody)
+
+		rr := httptest.NewRequest(http.MethodPost, "/", bytes.NewBuffer(jsonBody))
+		rr.Header.Set("Content-Type", "application/json")
+
+		w := httptest.NewRecorder()
+		ProcessUrl(w, rr)
+		resultBody := ErrMessage{}
+		json.Unmarshal(w.Body.Bytes(), &resultBody)
+		if resultBody.Msg != "Url format invalid" {
+			t.Errorf("Expected %s, got %s", "Url format invalid", resultBody.Msg)
 		}
 	})
 }

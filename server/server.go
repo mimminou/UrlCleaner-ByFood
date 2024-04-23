@@ -42,11 +42,16 @@ type ErrMessage struct {
 //	@Router			/ [post]
 func ProcessUrl(w http.ResponseWriter, r *http.Request) {
 
+	if r.Method == "OPTIONS" {
+		w.WriteHeader(http.StatusOK)
+		return
+	}
+
+	// redirect
+	if r.Method == "GET" {
+		http.Redirect(w, r, "/docs/", http.StatusMovedPermanently)
+	}
 	if r.Method != "POST" {
-		if r.Method == "OPTIONS" {
-			w.WriteHeader(http.StatusOK)
-			return
-		}
 		w.WriteHeader(http.StatusMethodNotAllowed)
 		return
 	}
